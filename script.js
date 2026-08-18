@@ -4,7 +4,6 @@ const attemptsDisplay = document.getElementById("attempts");
 const restartButton = document.getElementById("restart-btn");
 const message = document.getElementById("message");
 
-// Your 10 images
 const images = [
     "images/image1.jpg",
     "images/image2.jpg",
@@ -18,14 +17,16 @@ const images = [
     "images/image10.jpg"
 ];
 
-let cards = [];
 let flippedCards = [];
 let matchedPairs = 0;
 let attempts = 0;
 let lockBoard = false;
 
 
-// CREATE CARDS
+// =========================
+// CREATE GAME
+// =========================
+
 function createCards() {
 
     gameBoard.innerHTML = "";
@@ -33,19 +34,15 @@ function createCards() {
     flippedCards = [];
     matchedPairs = 0;
     attempts = 0;
-    lockBoard = false;
+    lockBoard = true;
 
     matchesDisplay.textContent = "0";
     attemptsDisplay.textContent = "0";
-    message.textContent = "";
-
-    /*
-        Each image appears twice.
-        This creates 20 cards.
-    */
+    message.textContent = "👀 Memorize the cards!";
 
     let cardData = [];
 
+    // Create 2 copies of each image
     images.forEach((image, index) => {
 
         cardData.push({
@@ -62,23 +59,18 @@ function createCards() {
 
     });
 
-    /*
-        Add the 21st special card.
-    */
-
+    // 21st card
     cardData.push({
         id: "special",
         image: null,
         special: true
     });
 
-    // Shuffle cards
+    // SHUFFLE
     shuffle(cardData);
 
-    cards = cardData;
-
-    // Create HTML cards
-    cardData.forEach((card, index) => {
+    // Create cards
+    cardData.forEach((card) => {
 
         const cardElement = document.createElement("div");
 
@@ -89,7 +81,6 @@ function createCards() {
         }
 
         cardElement.dataset.id = card.id;
-        cardElement.dataset.index = index;
 
         cardElement.innerHTML = `
             <div class="card-inner">
@@ -111,33 +102,58 @@ function createCards() {
             </div>
         `;
 
-        cardElement.addEventListener("click", () => flipCard(cardElement));
+        cardElement.addEventListener("click", () => {
+            flipCard(cardElement);
+        });
 
         gameBoard.appendChild(cardElement);
     });
+
+
+    // =========================
+    // REVEAL ALL CARDS
+    // =========================
+
+    const allCards = document.querySelectorAll(".card");
+
+    allCards.forEach(card => {
+        card.classList.add("flipped");
+    });
+
+
+    // Hide cards after 5 seconds
+    setTimeout(() => {
+
+        allCards.forEach(card => {
+            card.classList.remove("flipped");
+        });
+
+        lockBoard = false;
+
+        message.textContent = "🎯 Find all the matching pairs!";
+
+    }, 5000);
 }
 
 
+// =========================
 // FLIP CARD
+// =========================
+
 function flipCard(cardElement) {
 
-    // Don't allow cards to be clicked while checking
     if (lockBoard) return;
 
-    // Don't allow clicking the same card twice
     if (cardElement.classList.contains("flipped")) return;
 
-    // Don't allow matched cards to be clicked
     if (cardElement.classList.contains("matched")) return;
 
-    // Only allow 2 cards
     if (flippedCards.length >= 2) return;
 
     cardElement.classList.add("flipped");
 
     flippedCards.push(cardElement);
 
-    // Check after 2 cards
     if (flippedCards.length === 2) {
 
         attempts++;
@@ -149,7 +165,10 @@ function flipCard(cardElement) {
 }
 
 
+// =========================
 // CHECK MATCH
+// =========================
+
 function checkMatch() {
 
     lockBoard = true;
@@ -159,6 +178,7 @@ function checkMatch() {
 
     const firstId = firstCard.dataset.id;
     const secondId = secondCard.dataset.id;
+
 
     // Special card
     if (firstId === "special" || secondId === "special") {
@@ -172,11 +192,11 @@ function checkMatch() {
 
             lockBoard = false;
 
-            message.textContent = "❌ Wrong! The special card has no pair.";
+            message.textContent = "❌ Wrong!";
 
             setTimeout(() => {
                 message.textContent = "";
-            }, 1000);
+            }, 800);
 
         }, 800);
 
@@ -204,19 +224,21 @@ function checkMatch() {
 
             setTimeout(() => {
                 message.textContent = "";
-            }, 800);
+            }, 700);
+
 
             // WIN
             if (matchedPairs === 10) {
 
                 message.textContent =
-                    `🎉 Congratulations! You matched all 10 pairs in ${attempts} attempts!`;
+                    `🎉 You won! ${attempts} attempts.`;
 
             }
 
         }, 400);
 
     }
+
 
     // WRONG
     else {
@@ -230,23 +252,27 @@ function checkMatch() {
 
             lockBoard = false;
 
-            message.textContent = "❌ Wrong! Try again.";
+            message.textContent = "❌ Wrong!";
 
             setTimeout(() => {
                 message.textContent = "";
-            }, 1000);
+            }, 800);
 
         }, 1000);
     }
 }
 
 
+// =========================
 // SHUFFLE
+// =========================
+
 function shuffle(array) {
 
     for (let i = array.length - 1; i > 0; i--) {
 
-        const randomIndex = Math.floor(Math.random() * (i + 1));
+        const randomIndex =
+            Math.floor(Math.random() * (i + 1));
 
         [array[i], array[randomIndex]] =
             [array[randomIndex], array[i]];
@@ -256,9 +282,19 @@ function shuffle(array) {
 }
 
 
+// =========================
 // RESTART
-restartButton.addEventListener("click", createCards);
+// =========================
+
+restartButton.addEventListener("click", () => {
+
+    createCards();
+
+});
 
 
+// =========================
 // START GAME
+// =========================
+
 createCards();
